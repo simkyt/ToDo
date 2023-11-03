@@ -70,9 +70,9 @@ class ToDoTableViewController: UITableViewController {
         if let alertController = presentedViewController as? UIAlertController {
             let titleTextField = alertController.textFields?.first
             let descriptionTextField = alertController.textFields?.last
-            let isTitleNotEmpty = !(titleTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-            let isDescriptionNotEmpty = !(descriptionTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-            alertController.actions.first { $0.title == "Add" }?.isEnabled = isTitleNotEmpty && isDescriptionNotEmpty
+            let isTitleEmpty = titleTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+            let isDescriptionEmpty = descriptionTextField?.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+            alertController.actions.first { $0.title == "Add" }?.isEnabled = !isTitleEmpty && !isDescriptionEmpty
         }
     }
 
