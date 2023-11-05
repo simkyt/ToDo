@@ -8,9 +8,9 @@
 import UIKit
 import CoreData
 
-class ToDoTableViewController: UITableViewController {
+class ToDoTableViewController: UITableViewController, AddViewControllerDelegate {
 
-    @IBOutlet weak var editButton: UIBarButtonItem!
+    var editButton: UIBarButtonItem!
     var managedObjectContext: NSManagedObjectContext?
     var toDoLists = [ToDo]()
     private var cellID = "toDoCell"
@@ -18,7 +18,6 @@ class ToDoTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {return}
         managedObjectContext = appDelegate.persistentContainer.viewContext
         loadCoreData()
@@ -30,6 +29,12 @@ class ToDoTableViewController: UITableViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellID)
         let addButton = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(addNewItem))
         self.navigationItem.rightBarButtonItem = addButton
+        
+        let deleteButton = UIBarButtonItem(title: "Delete", style: .done, target: self, action: #selector(deleteAllItems))
+        
+        editButton = UIBarButtonItem(title: "Edit", style: .done, target: self, action: #selector(toggleEditingMode))
+        
+        self.navigationItem.leftBarButtonItems = [deleteButton, editButton]
         
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
         view.addGestureRecognizer(longPressRecognizer)
@@ -53,86 +58,59 @@ class ToDoTableViewController: UITableViewController {
         if sender.state == UIGestureRecognizer.State.began {
             let touchPath = sender.location(in: tableView)
             if let indexPath = tableView.indexPathForRow(at: touchPath) {
-                print(indexPath)
-                basicActionSheet(title: toDoLists[indexPath.row].item, message: "Completed: \(toDoLists[indexPath.row].completed)")
+                selectedRow = indexPath
+                tableView.deselectRow(at: indexPath, animated: true)
+                let imagePickerController = UIImagePickerController()
+                imagePickerController.delegate = self
+                imagePickerController.sourceType = .photoLibrary
+                present(imagePickerController, animated: true, completion: nil)
+//                print(indexPath)
+//                basicActionSheet(title: toDoLists[indexPath.row].item, message: "Completed: \(toDoLists[indexPath.row].completed)")
             }
         }
     }
-    
+        
     @objc func addNewItem() {
-        let alertController = UIAlertController(title: "Do To List", message: "Do you want to add new item?", preferredStyle: .alert)
-        alertController.addTextField { titleFieldValue in
-            titleFieldValue.placeholder = "Your title here..."
-            titleFieldValue.addTarget(self, action: #selector(self.textFieldDidChange(_:)), for: .editingChanged)
-        }
-        
-        alertController.addTextField { descFieldValue in
-            descFieldValue.placeholder = "Your description here..."
-            descFieldValue.addTarget(self, action: #selector(self.textFieldDidChange(_:)), for: .editingChanged)
-        }
-        
-        let addActionButton = UIAlertAction(title: "Add", style: .default) { addActions in
-            let textField = alertController.textFields?.first
-            let description = alertController.textFields?.last
-            
-            let entity = NSEntityDescription.entity(forEntityName: "ToDo", in: self.managedObjectContext!)
-            let list = NSManagedObject(entity: entity!, insertInto: self.managedObjectContext)
-            
-            list.setValue(textField?.text, forKey: "item")
-            list.setValue(description?.text, forKey: "desc")
-            self.saveCoreData()
-        }
-        addActionButton.isEnabled = false
-        
-        let cancelActionButton = UIAlertAction(title: "Cancel", style: .destructive)
-        
-        alertController.addAction(addActionButton)
-        alertController.addAction(cancelActionButton)
-        
-        present(alertController, animated: true)
+        let addViewController = AddViewController()
+        addViewController.delegate = self
+        self.present(addViewController, animated: true, completion: nil)
     }
     
-//    @IBAction func toggleEditingMode(_ sender: UIBarButtonItem) {
-//        let isEditing = self.tableView.isEditing
-//        self.tableView.setEditing(!isEditing, animated: true)
-//        self.tableView.allowsSelectionDuringEditing = true
-//
-//        sender.tintColor = isEditing ? .black : .red
-//    }
+    @objc func deleteAllItems() {
+        if toDoLists.count == 0 {
+            let alertController = UIAlertController(title: "No items", message: "There are no items to delete.", preferredStyle: .alert)
+            let okButton = UIAlertAction(title: "OK", style: .default)
+            alertController.addAction(okButton)
+            present(alertController, animated: true)
+        } else {
+            let alertController = UIAlertController(title: "Delete all items", message: "Are you sure you want to delete all items?", preferredStyle: .alert)
+            
+            let deleteActionButton = UIAlertAction(title: "Confirm", style: .default) { _ in
+                self.deleteAllCoreData()
+            }
+            let cancelActionButton = UIAlertAction(title: "Cancel", style: .destructive)
+            alertController.addAction(deleteActionButton)
+            alertController.addAction(cancelActionButton)
+            
+            present(alertController, animated: true)
+        }
+    }
     
-//    @IBAction func addNewItemTapped(_ sender: Any) {
-//        
-//        let alertController = UIAlertController(title: "Do To List", message: "Do you want to add new item?", preferredStyle: .alert)
-//        alertController.addTextField { titleFieldValue in
-//            titleFieldValue.placeholder = "Your title here..."
-//            titleFieldValue.addTarget(self, action: #selector(self.textFieldDidChange(_:)), for: .editingChanged)
-//        }
-//        
-//        alertController.addTextField { descFieldValue in
-//            descFieldValue.placeholder = "Your description here..."
-//            descFieldValue.addTarget(self, action: #selector(self.textFieldDidChange(_:)), for: .editingChanged)
-//        }
-//        
-//        let addActionButton = UIAlertAction(title: "Add", style: .default) { addActions in
-//            let textField = alertController.textFields?.first
-//            let description = alertController.textFields?.last
-//            
-//            let entity = NSEntityDescription.entity(forEntityName: "ToDo", in: self.managedObjectContext!)
-//            let list = NSManagedObject(entity: entity!, insertInto: self.managedObjectContext)
-//            
-//            list.setValue(textField?.text, forKey: "item")
-//            list.setValue(description?.text, forKey: "desc")
-//            self.saveCoreData()
-//        }
-//        addActionButton.isEnabled = false
-//        
-//        let cancelActionButton = UIAlertAction(title: "Cancel", style: .destructive)
-//        
-//        alertController.addAction(addActionButton)
-//        alertController.addAction(cancelActionButton)
-//        
-//        present(alertController, animated: true)
-//    }
+    @objc func toggleEditingMode() {
+        if toDoLists.count == 0 {
+            let alertController = UIAlertController(title: "No items", message: "There are no items to edit.", preferredStyle: .alert)
+            let okButton = UIAlertAction(title: "OK", style: .default)
+            alertController.addAction(okButton)
+            present(alertController, animated: true)
+        } else {
+            let isEditing = self.tableView.isEditing
+            self.tableView.setEditing(!isEditing, animated: true)
+            self.tableView.allowsSelectionDuringEditing = true
+            
+            let titleColor: UIColor = isEditing ? UIColor.black : UIColor.red
+            editButton.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: titleColor], for: .normal)
+        }
+    }
     
     @objc func textFieldDidChange(_ textField: UITextField) {
         if let alertController = presentedViewController as? UIAlertController {
@@ -143,26 +121,6 @@ class ToDoTableViewController: UITableViewController {
             alertController.actions.first { $0.title == "Add" }?.isEnabled = !isTitleEmpty && !isDescriptionEmpty
         }
     }
-
-//    @IBAction func deleteAllTapped(_ sender: Any) {
-//        if toDoLists.count == 0 {
-//            let alertController = UIAlertController(title: "No items", message: "There are no items to delete.", preferredStyle: .alert)
-//            let okButton = UIAlertAction(title: "OK", style: .default)
-//            alertController.addAction(okButton)
-//            present(alertController, animated: true)
-//        } else {
-//            let alertController = UIAlertController(title: "Delete all items", message: "Are you sure you want to delete all items?", preferredStyle: .alert)
-//            
-//            let deleteActionButton = UIAlertAction(title: "Confirm", style: .default) { _ in
-//                self.deleteAllCoreData()
-//            }
-//            let cancelActionButton = UIAlertAction(title: "Cancel", style: .destructive)
-//            alertController.addAction(deleteActionButton)
-//            alertController.addAction(cancelActionButton)
-//            
-//            present(alertController, animated: true)
-//        }
-//    }
 }
 
 extension UITableView {
@@ -313,17 +271,8 @@ extension ToDoTableViewController {
     }
  
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if tableView.isEditing {
-            selectedRow = indexPath
-            tableView.deselectRow(at: indexPath, animated: true)
-            let imagePickerController = UIImagePickerController()
-            imagePickerController.delegate = self
-            imagePickerController.sourceType = .photoLibrary
-            present(imagePickerController, animated: true, completion: nil)
-        } else {
-            tableView.deselectRow(at: indexPath, animated: true)
-            toDoLists[indexPath.row].completed = !toDoLists[indexPath.row].completed
-        }
+        tableView.deselectRow(at: indexPath, animated: true)
+        toDoLists[indexPath.row].completed = !toDoLists[indexPath.row].completed
         saveCoreData()
     }
    

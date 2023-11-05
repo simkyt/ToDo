@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E28C50A2AF835100023F643 /* AddViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E28C5092AF835100023F643 /* AddViewController.swift */; };
 		680AF47F2AEFE036003C923F /* ToDoTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680AF47E2AEFE036003C923F /* ToDoTableViewController.swift */; };
 		68BA1D922AEFDD5300D3BD2A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BA1D912AEFDD5300D3BD2A /* AppDelegate.swift */; };
 		68BA1D942AEFDD5300D3BD2A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BA1D932AEFDD5300D3BD2A /* SceneDelegate.swift */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1E28C5092AF835100023F643 /* AddViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddViewController.swift; sourceTree = "<group>"; };
 		680AF47E2AEFE036003C923F /* ToDoTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoTableViewController.swift; sourceTree = "<group>"; };
 		68BA1D8E2AEFDD5300D3BD2A /* ToDo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToDo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		68BA1D912AEFDD5300D3BD2A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -87,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				680AF47E2AEFE036003C923F /* ToDoTableViewController.swift */,
+				1E28C5092AF835100023F643 /* AddViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -161,6 +164,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1E28C50A2AF835100023F643 /* AddViewController.swift in Sources */,
 				68BA1D922AEFDD5300D3BD2A /* AppDelegate.swift in Sources */,
 				680AF47F2AEFE036003C923F /* ToDoTableViewController.swift in Sources */,
 				68BA1D942AEFDD5300D3BD2A /* SceneDelegate.swift in Sources */,
