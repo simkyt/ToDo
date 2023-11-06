@@ -22,13 +22,20 @@ class AddViewController: UIViewController {
     var titleTextField: UITextField!
     var descriptionTextField: UITextField!
     var saveButton: UIButton!
+    var stackViewBottomConstraint: NSLayoutConstraint!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .white
         
-        
+        setupViews()
+        setupConstraints()
+        setupKeyboardNotifications()
+
+    }
+    
+    func setupViews() {
         stackView = UIStackView()
         stackView.axis = .vertical
         stackView.spacing = 10
@@ -44,6 +51,7 @@ class AddViewController: UIViewController {
         titleLabel.text = "Add"
         titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         titleTextField = UITextField()
         titleTextField.translatesAutoresizingMaskIntoConstraints = false
@@ -69,27 +77,40 @@ class AddViewController: UIViewController {
         saveButton.addTarget(self, action: #selector(saveToDoItem), for: .touchUpInside)
         saveButton.isEnabled = false
         
-        stackView.addArrangedSubview(titleLabel)
         stackView.addArrangedSubview(titleTextField)
         stackView.addArrangedSubview(descriptionTextField)
         stackView.addArrangedSubview(saveButton)
 
+        view.addSubview(titleLabel)
         view.addSubview(closeButton)
         view.addSubview(stackView)
-        
+    }
+    
+    func setupConstraints() {
+        let verticalCenterConstraint = stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        verticalCenterConstraint.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
             closeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             closeButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
             closeButton.widthAnchor.constraint(equalToConstant: 30),
             closeButton.heightAnchor.constraint(equalToConstant: 30),
             
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 15),
+            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            titleLabel.widthAnchor.constraint(equalToConstant: 200),
+            titleLabel.heightAnchor.constraint(equalToConstant: 30),
+            
             stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
-            stackView.widthAnchor.constraint(equalToConstant: 250),
-            stackView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+            verticalCenterConstraint,
+            stackView.widthAnchor.constraint(equalToConstant: 250)
         ])
-
+        
+        stackViewBottomConstraint = stackView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100)
+        stackViewBottomConstraint.isActive = true
     }
+
+
     
     @objc func saveToDoItem() {
         if let context = delegate?.managedObjectContext {
@@ -115,5 +136,30 @@ class AddViewController: UIViewController {
     
     @objc func dismissViewController() {
         self.dismiss(animated: true, completion: nil)
+    }
+    
+    func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    @objc func keyboardWillShow(notification: NSNotification) {
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            let keyboardHeight = keyboardSize.height
+            let safeAreaBottomInset = view.safeAreaInsets.bottom
+            stackViewBottomConstraint.constant = -(keyboardHeight - safeAreaBottomInset)
+            animateLayoutChanges()
+        }
+    }
+    
+    @objc func keyboardWillHide(notification: NSNotification) {
+        stackViewBottomConstraint.constant = -100
+        animateLayoutChanges()
+    }
+    
+    func animateLayoutChanges() {
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
     }
 }
